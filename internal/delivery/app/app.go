@@ -112,10 +112,10 @@ func (a *App) Run(ctx context.Context) error {
 		return logError("重建留言板失败", err)
 	}
 
-	log.Println("导出用户数据到 JSON 格式...")
-	err = a.exportUseCase.ExportUserDataToJSON(ctx, user.QQ)
+	log.Println("导出用户数据到 HTML 格式...")
+	err = a.exportUseCase.ExportUserDataToHTML(ctx, user.QQ)
 	if err != nil {
-		return logError("导出用户数据到 JSON 失败", err)
+		return logError("导出用户数据到 Html 失败", err)
 	}
 
 	log.Println("应用程序成功完成")
