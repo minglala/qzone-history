@@ -60,6 +60,49 @@ QZone History Restoration 是一个旨在还原和重建 QQ 空间历史的项�
 
 ---
 
+### 构建与部署
+
+#### 本地构建
+
+```bash
+# 克隆仓库
+git clone https://github.com/minglala/qzone-history.git
+cd qzone-history
+
+# 构建项目
+go build -o qzone-history ./cmd/main.go
+
+# 运行
+./qzone-history
+```
+
+#### macOS 构建
+
+项目提供了自动化的 macOS 构建流水线，支持 Intel (amd64) 和 Apple Silicon (arm64) 架构：
+
+- **自动触发**：每次提交到 `main` 或 `master` 分支时自动构建
+- **手动触发**：可以在 GitHub Actions 页面手动运行构建
+- **构建产物**：
+  - `qzone-history_<version>_darwin_amd64.tar.gz` - Intel Mac 版本
+  - `qzone-history_<version>_darwin_arm64.tar.gz` - Apple Silicon 版本
+  - 同时提供 `.zip` 格式供选择
+
+构建产物会自动上传到 GitHub Actions 的 Artifacts 中，保留 30 天。
+
+#### 发布版本
+
+使用 GoReleaser 自动发布：
+
+```bash
+# 创建并推送标签
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin v1.0.0
+```
+
+推送标签后，GitHub Actions 会自动构建并发布支持多平台的版本（Windows、Linux、macOS）。
+
+---
+
 > **⚠️ 警告：** 该项目仅供学习整洁架构及相关技术之用，禁止用于其他目的！
 
 ---
