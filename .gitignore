@@ -4,6 +4,7 @@
 *.env
 app.db
 qrcode.png
+main
 
 # Binaries for programs and plugins
 *.exe

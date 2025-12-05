@@ -1,0 +1,86 @@
+name: Build macOS Package
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    name: Build for macOS
+    runs-on: macos-latest
+    
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+      
+      - name: Get version
+        id: version
+        run: |
+          # Try to get version from git tag, fallback to commit sha
+          if git describe --tags --exact-match 2>/dev/null; then
+            VERSION=$(git describe --tags --exact-match)
+          else
+            VERSION=$(git rev-parse --short HEAD)
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Building version: ${VERSION}"
+      
+      - name: Build for macOS ${{ matrix.arch }}
+        env:
+          GOOS: darwin
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          go build -v -ldflags="-s -w -X version.Version=${VERSION}" -o qzone-history-darwin-${{ matrix.arch }} ./cmd/main.go
+      
+      - name: Create archive
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          mkdir -p dist
+          tar -czf dist/qzone-history_${VERSION}_darwin_${{ matrix.arch }}.tar.gz qzone-history-darwin-${{ matrix.arch }}
+          
+          # Also create a zip file for convenience
+          zip dist/qzone-history_${VERSION}_darwin_${{ matrix.arch }}.zip qzone-history-darwin-${{ matrix.arch }}
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: qzone-history-darwin-${{ matrix.arch }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+          retention-days: 30
+      
+      - name: Display build info
+        run: |
+          echo "✅ Successfully built for macOS ${{ matrix.arch }}"
+          ls -lh dist/
+          file qzone-history-darwin-${{ matrix.arch }}
